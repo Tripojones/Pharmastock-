@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14213D">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>PharmaStock</title>
+<style>
+:root{--paper:#F5F6FB;--ink:#14213D;--primary:#2F55D4;--primary-dark:#2140A8;--line:#D3D8EA;--muted:#5D6785;--warn:#B3261E;--blend:linear-gradient(90deg,#2F55D4,#7B4DD8,#E0407B,#F26B3A,#F5B301)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;line-height:1.45}
+.screen{display:none}.screen.active{display:block}
+.wrap{max-width:380px;margin:0 auto;padding:56px 22px 40px}
+h1{margin:0;font-size:36px;letter-spacing:-.02em;line-height:1.1}
+.tag{margin:8px 0 30px;color:var(--muted)}
+label{display:block;margin:16px 0 6px;font-weight:600;font-size:14px}
+input,select{width:100%;padding:13px 14px;font-size:16px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.pw{position:relative}
+.pw input{padding-right:70px}
+.pw button{position:absolute;right:6px;top:6px;bottom:6px;padding:0 12px;border:0;background:transparent;color:var(--primary);font-weight:600;font-size:14px;border-radius:8px}
+.primary{width:100%;margin-top:22px;padding:14px;background:#3A3F4B;color:#fff;border:0;border-radius:10px;font-size:16px;font-weight:700}
+.primary:active{background:#23262E}
+.primary:disabled{opacity:.6}
+.err{color:var(--warn);min-height:22px;margin-top:14px;font-size:14px}
+.bar{position:relative;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px 19px;background:var(--ink);color:#fff}.bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--blend)}#loginScreen::before{content:"";display:block;height:6px;background:var(--blend)}
+.bar b{font-size:18px}
+.who{font-size:13px;opacity:.9}
+.badge{display:inline-block;margin-left:6px;padding:1px 9px;border:1px solid rgba(255,255,255,.7);border-radius:20px;font-size:12px}
+.ghost{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7);border-radius:8px;padding:7px 12px;font-size:14px;font-weight:600}
+main{max-width:640px;margin:0 auto;padding:22px}
+h2{margin:0 0 14px;font-size:22px}
+.empty{border:1.5px dashed var(--line);border-radius:12px;padding:26px 20px;color:var(--muted);background:#fff}
+.load{padding:80px 22px;text-align:center;color:var(--muted)}
+
+/* Acrylic: colour glow behind frosted, translucent panels */
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+radial-gradient(60% 45% at 12% 8%,rgba(47,85,212,.8),transparent 70%),
+radial-gradient(50% 40% at 92% 14%,rgba(123,77,216,.75),transparent 70%),
+radial-gradient(55% 40% at 88% 62%,rgba(224,64,123,.7),transparent 70%),
+radial-gradient(55% 40% at 8% 78%,rgba(242,107,58,.7),transparent 70%),
+radial-gradient(50% 35% at 60% 100%,rgba(245,179,1,.75),transparent 70%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.08;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.wrap{width:calc(100% - 32px);max-width:380px;margin:44px auto 40px;padding:30px 24px 28px;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border:1px solid rgba(255,255,255,.75);border-radius:20px;box-shadow:0 10px 40px rgba(20,33,61,.15)}
+.tag{color:#47526E}
+input{background:rgba(255,255,255,.8)}
+.bar{background:rgba(20,33,61,.74);-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%)}
+.empty{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid rgba(255,255,255,.75);color:#47526E}
+.load{color:var(--ink)}
+.ver{margin-top:10px;text-align:center;font-size:12px;color:#47526E}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.wrap,.empty{background:rgba(255,255,255,.94)}.bar{background:var(--ink)}}
+.capsule{display:block;width:170px;height:auto;margin:0 0 12px -12px;overflow:visible}
+.corner{position:absolute;top:16px;left:18px;font-size:13px;font-weight:700;letter-spacing:.02em;color:#2140A8}
+.corner-home{font-size:12px;font-weight:700;letter-spacing:.02em;color:#FFD35C;margin-bottom:2px}
+[hidden]{display:none!important}
+.toolbar{display:flex;gap:10px;margin-bottom:12px}
+.toolbar input{flex:1;min-width:0}
+.add{padding:0 16px;background:#3A3F4B;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:15px}
+.add:active{background:#23262E}
+.panel{background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid rgba(255,255,255,.75);border-radius:14px;padding:6px 16px 16px;margin-bottom:14px}
+.panel label{margin:12px 0 5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row.soldout{opacity:.5;cursor:not-allowed;pointer-events:none;background:rgba(58,63,75,.08)}
+#todaySales summary::-webkit-details-marker{display:none}
+.tsrow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(58,63,75,.15);font-size:14px}
+.cartitem{padding:10px 0;border-bottom:1px solid rgba(58,63,75,.18)}
+.cartitem:last-of-type{border-bottom:0}
+.carttop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cartitem .grid2 label{margin:8px 0 4px;font-size:13px}
+.cline{font-size:13px;color:#47526E;margin-top:6px;text-align:right}
+.rm{padding:6px 12px;font-size:13px;background:transparent;border:1.5px solid #B3261E;color:#B3261E;border-radius:10px;font-weight:700}
+.actions{display:flex;gap:10px;margin-top:18px}
+.actions .primary{margin-top:0;flex:1}
+.cancel{padding:0 16px;background:transparent;border:1.5px solid #3A3F4B;color:#3A3F4B;border-radius:10px;font-weight:700;font-size:15px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 15px;margin:8px 0;background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid rgba(255,255,255,.75);border-radius:14px}
+.dname{font-weight:700;font-size:16px}
+.meta{font-size:13px;color:#47526E;margin-top:2px}
+.right{text-align:right;flex:none}
+.bal{font-size:22px;font-weight:800;line-height:1.1}
+.stat{font-size:12px;color:#47526E;margin-top:3px}
+.stat.out{color:#B3261E;font-weight:700}
+.stat.low{color:#B45309;font-weight:700}
+.pill{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid #3A3F4B;color:#3A3F4B}
+.pill.owner{border-color:#2F55D4;color:#2140A8}
+.pill.inactive{border-color:#B3261E;color:#B3261E}
+.userRow{align-items:flex-start}
+.userActions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.userActions select{width:auto;padding:6px 10px;font-size:13px}
+.note{font-size:13px;color:#47526E;margin-top:12px}
+.recv{margin-top:8px;padding:6px 12px;background:transparent;border:1.5px solid #3A3F4B;color:#3A3F4B;border-radius:8px;font-weight:700;font-size:13px}
+.recv:active{background:rgba(58,63,75,.12)}
+.tabs{display:flex;gap:8px;max-width:640px;margin:16px auto 0;padding:0 22px}
+.tab{flex:1;padding:11px 4px;background:rgba(255,255,255,.5);border:1.5px solid #3A3F4B;color:#3A3F4B;border-radius:10px;font-weight:700;font-size:15px}
+.tab.on{background:#3A3F4B;color:#fff}
+.tabs{gap:6px}.tab{font-size:14px}
+.seg{display:flex;gap:6px;margin-bottom:12px}
+.seg button{flex:1;padding:10px 2px;background:rgba(255,255,255,.5);border:1.5px solid #3A3F4B;color:#3A3F4B;border-radius:10px;font-weight:700;font-size:14px}
+.seg button.on{background:#3A3F4B;color:#fff}
+.rnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.rnav button{width:46px;height:46px;background:rgba(255,255,255,.5);border:1.5px solid #3A3F4B;color:#3A3F4B;border-radius:10px;font-size:24px;font-weight:700;line-height:1}
+.rnav button:disabled{opacity:.35}
+.rnav div{flex:1;text-align:center;font-weight:700;font-size:16px}
+.bigsum{font-size:34px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.pick{cursor:pointer}
+.pick:active{background:rgba(255,255,255,.85)}
+.sum{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-top:14px}
+.sum .big{font-size:30px;font-weight:800;line-height:1.1}
+.sum .lbl{font-size:13px;color:#47526E}
+.total{margin-top:14px;font-size:16px;font-weight:700}
+.sheet{width:100%;border-collapse:collapse;font-size:14px}
+.sheet th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#47526E;text-align:right;padding:8px 4px;border-bottom:1.5px solid rgba(20,33,61,.25)}
+.sheet th:first-child,.sheet td:first-child{text-align:left}
+.sheet td{padding:10px 4px;text-align:right;border-bottom:1px solid rgba(20,33,61,.12);font-variant-numeric:tabular-nums}
+.sheet td:first-child{font-weight:700;word-break:break-word;max-width:120px}
+.sheet .z{color:#8A93AB}
+.sheet tfoot td{font-weight:800;border-bottom:0;border-top:1.5px solid rgba(20,33,61,.35)}
+.day{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.day input{flex:1}
+.nums{display:flex;gap:14px;align-items:flex-start}
+.nums .c{text-align:center;min-width:44px}
+.nums .v{font-size:16px;font-weight:700;line-height:1.2}
+.nums .v.z{color:#8A93AB;font-weight:600}
+.nums .h{font-size:11px;color:#47526E;text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
+.nums .c.main .v{font-size:24px;font-weight:800}
+.addnew{display:block;width:100%;margin-top:12px;padding:13px;background:#3A3F4B;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:15px}
+.addnew:active{background:#23262E}
+.row.holdable{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.danger{padding:0 16px;background:transparent;border:1.5px solid #B3261E;color:#B3261E;border-radius:10px;font-weight:700;font-size:15px}
+.danger:active{background:rgba(179,38,30,.12)}
+input[readonly]{background:rgba(255,255,255,.45);color:#47526E}
+.ok{color:#1B6E3A;font-weight:600;font-size:14px;margin-bottom:10px}
+.shopbar{max-width:640px;margin:12px auto 0;padding:0 22px}
+.shopbar .seg{margin-bottom:0}
+.netbar{background:#F5B301;color:#14213D;text-align:center;font-size:13px;font-weight:700;padding:7px 12px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head><body>
+
+<div id="loadScreen" class="screen active"><div class="load">Loading...</div></div>
+
+<div id="loginScreen" class="screen">
+  <div class="corner">Greg Inc 2026</div>
+  <div class="wrap">
+    <svg class="capsule" viewBox="0 0 200 130" role="img" aria-label="Capsule">
+      <defs>
+        <linearGradient id="gL" x1="0" x2="1"><stop offset="0" stop-color="#2F55D4"/><stop offset="1" stop-color="#7B4DD8"/></linearGradient>
+        <linearGradient id="gR" x1="0" x2="1"><stop offset="0" stop-color="#E0407B"/><stop offset=".55" stop-color="#F26B3A"/><stop offset="1" stop-color="#F5B301"/></linearGradient>
+        <linearGradient id="vol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".4"/></linearGradient>
+        <linearGradient id="spec" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".15" stop-color="#fff" stop-opacity=".9"/><stop offset=".85" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <clipPath id="cp"><rect x="20" y="32" width="160" height="60" rx="30"/></clipPath>
+        <filter id="soft" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="1.4"/></filter>
+        <filter id="shade" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <ellipse cx="100" cy="121" rx="58" ry="5.5" fill="#14213D" opacity=".32" filter="url(#shade)"/>
+      <g transform="rotate(-24 100 62)">
+        <g clip-path="url(#cp)">
+          <rect x="20" y="32" width="81" height="60" fill="url(#gL)"/>
+          <rect x="99" y="32" width="81" height="60" fill="url(#gR)"/>
+          <rect x="20" y="32" width="160" height="60" fill="url(#vol)"/>
+          <rect x="96" y="32" width="8" height="60" fill="#14213D" opacity=".3"/>
+          <rect x="99.5" y="32" width="1.6" height="60" fill="#fff" opacity=".4"/>
+        </g>
+        <rect x="38" y="38" width="124" height="9" rx="4.5" fill="url(#spec)" filter="url(#soft)"/>
+        <ellipse cx="33" cy="62" rx="4" ry="12" fill="#fff" opacity=".28" filter="url(#soft)"/>
+        <ellipse cx="167" cy="62" rx="4" ry="12" fill="#fff" opacity=".22" filter="url(#soft)"/>
+        <path d="M46 86 Q100 94 154 86" stroke="#fff" stroke-opacity=".3" stroke-width="2" fill="none" stroke-linecap="round" filter="url(#soft)"/>
+        <rect x="20" y="32" width="160" height="60" rx="30" fill="none" stroke="#14213D" stroke-opacity=".35" stroke-width="1.5"/>
+      </g>
+    </svg>
+    <h1>PharmaStock</h1>
+    <p class="tag">Stock in, stock out, and daily sales.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" inputmode="email">
+    <label for="password">Password</label>
+    <div class="pw">
+      <input id="password" type="password" autocomplete="current-password">
+      <button type="button" id="toggle">Show</button>
+    </div>
+    <button class="primary" id="signIn" type="button">Sign in</button>
+    <div class="err" id="err" role="alert"></div>
+    <div class="ver">Version 2.9 - acrylic</div>
+  </div>
+</div>
+
+<div id="homeScreen" class="screen">
+  <div class="bar">
+    <div><div class="corner-home">Greg Inc 2026</div><b>PharmaStock</b><div class="who"><span id="who"></span><span class="badge" id="role"></span><span class="badge" id="shopBadge" style="display:none"></span></div></div>
+    <button class="ghost" id="signOut" type="button">Sign out</button>
+  </div>
+  <div class="netbar" id="netBar" role="status" hidden></div>
+  <div class="tabs" role="tablist">
+    <button class="tab on" id="tabDrugs" type="button" role="tab">Drugs</button>
+    <button class="tab" id="tabSell" type="button" role="tab">Sell</button>
+    <button class="tab" id="tabToday" type="button" role="tab">Daily</button>
+    <button class="tab" id="tabReports" type="button" role="tab">Reports</button>
+    <button class="tab" id="tabUsers" type="button" role="tab">Users</button>
+  </div>
+  <div class="shopbar" id="shopBar" hidden><div class="seg" id="shopSeg"></div></div>
+  <main>
+    <section id="viewDrugs">
+    <h2>Drugs</h2>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search drugs" aria-label="Search drugs">
+      <button class="add" id="addBtn" type="button" hidden>Add drug</button>
+    </div>
+    <div class="panel" id="addPanel" hidden>
+      <label for="dName">Drug name</label>
+      <input id="dName" type="text" autocomplete="off">
+      <div><label for="dReorder">Reorder level</label><input id="dReorder" type="number" inputmode="decimal" min="0" step="any"></div>
+      <div class="grid2">
+        <div><label for="dCost">Cost price</label><input id="dCost" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div><label for="dSell">Default selling price</label><input id="dSell" type="number" inputmode="decimal" min="0" step="any"></div>
+      </div>
+      <label for="dOpen" id="dOpenLbl">Opening stock (optional)</label>
+      <input id="dOpen" type="number" inputmode="decimal" min="0" step="any" placeholder="How many you have now">
+      <div class="actions">
+        <button class="primary" id="saveDrug" type="button">Save drug</button>
+        <button class="cancel" id="cancelAdd" type="button">Cancel</button>
+      </div>
+      <div class="err" id="addErr" role="alert"></div>
+    </div>
+    <div class="panel" id="editPanel" hidden>
+      <label id="editTitle">Edit drug</label>
+      <label for="eName">Drug name</label>
+      <input id="eName" type="text" autocomplete="off">
+      <div><label for="eReorder">Reorder level</label><input id="eReorder" type="number" inputmode="decimal" min="0" step="any"></div>
+      <div class="grid2">
+        <div><label for="eCost">Cost price</label><input id="eCost" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div><label for="eSell">Default selling price</label><input id="eSell" type="number" inputmode="decimal" min="0" step="any"></div>
+      </div>
+      <div id="shopPrices"></div>
+      <div class="actions">
+        <button class="primary" id="saveEdit" type="button">Save changes</button>
+        <button class="cancel" id="cancelEdit" type="button">Cancel</button>
+      </div>
+      <div class="actions">
+        <button class="danger" id="hideDrug" type="button" style="flex:1;padding:12px">Hide this drug</button>
+      </div>
+      <div class="note">Hiding removes it from Drugs and Sell. Its sales history is kept.</div>
+      <div class="err" id="editErr" role="alert"></div>
+    </div>
+    <div class="panel" id="recvPanel" hidden>
+      <label id="recvTitle">Receive stock</label>
+      <div class="grid2">
+        <div><label for="rQty">Quantity received</label><input id="rQty" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div><label for="rCost">Cost price (each)</label><input id="rCost" type="number" inputmode="decimal" min="0" step="any"></div>
+      </div>
+      <label for="rNote">Note (optional)</label>
+      <input id="rNote" type="text" placeholder="Supplier or invoice" autocomplete="off">
+      <div class="actions">
+        <button class="primary" id="saveRecv" type="button">Save stock</button>
+        <button class="cancel" id="cancelRecv" type="button">Cancel</button>
+      </div>
+      <div class="err" id="recvErr" role="alert"></div>
+    </div>
+    <div class="ok" id="okMsg" role="status"></div>
+    <div id="drugList"></div>
+    <div class="note" id="listNote"></div>
+    </section>
+
+    <section id="viewSell" hidden>
+      <h2>Sell</h2>
+      <details class="panel" id="todaySales" style="padding-top:12px">
+        <summary style="cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px">
+          <span>Today's sales</span><span id="tsTotal">-</span>
+        </summary>
+        <div id="tsBody" style="margin-top:10px"></div>
+      </details>
+      <div class="panel" id="pendingPanel" hidden style="padding-top:12px">
+        <label id="pendingTitle" style="margin-top:0">Waiting to send</label>
+        <div id="pendingList"></div>
+        <div class="actions">
+          <button class="primary" id="syncNow" type="button">Send now</button>
+        </div>
+      </div>
+      <input id="sSearch" type="search" placeholder="Search drug to sell" aria-label="Search drug to sell" style="margin-bottom:12px">
+      <div class="panel" id="sellPanel" hidden>
+        <label id="sellTitle">Current sale</label>
+        <div id="cartList"></div>
+        <div class="total" id="sTotal"></div>
+        <div class="actions">
+          <button class="primary" id="saveSale" type="button">Record sale</button>
+          <button class="cancel" id="cancelSale" type="button">Clear</button>
+        </div>
+        <div class="err" id="sellErr" role="alert"></div>
+      </div>
+      <div class="ok" id="sellOk" role="status"></div>
+      <div id="sellList"></div>
+    </section>
+
+    <section id="viewToday" hidden>
+      <h2 id="dayTitle">Daily sheet</h2>
+      <div class="day"><label for="dayPick" style="margin:0">Day</label><input id="dayPick" type="date"></div>
+      <div class="panel" style="padding-top:12px;overflow-x:auto">
+        <table class="sheet">
+          <thead><tr><th>Drug</th><th>Available</th><th>In</th><th>Out</th><th>Sales</th></tr></thead>
+          <tbody id="dayBody"></tbody>
+          <tfoot id="dayFoot"></tfoot>
+        </table>
+      </div>
+      <div class="note" id="todayNote"></div>
+      <div id="recordsBox" hidden>
+        <h2 style="margin-top:26px">Sales and deliveries</h2>
+        <div class="panel" id="cancelPanel" hidden>
+          <label id="cancelTitle">Cancel this record</label>
+          <div class="note" id="cancelDesc"></div>
+          <label for="cReason">Reason (optional)</label>
+          <input id="cReason" type="text" autocomplete="off" placeholder="For example: wrong drug">
+          <div class="actions">
+            <button class="danger" id="confirmCancel" type="button" style="flex:1;padding:12px">Yes, cancel it</button>
+            <button class="cancel" id="closeCancel" type="button">Keep it</button>
+          </div>
+          <div class="err" id="cancelErr" role="alert"></div>
+        </div>
+        <div class="ok" id="recOk" role="status"></div>
+        <div class="note" id="recNote"></div>
+        <div id="recList"></div>
+      </div>
+    </section>
+
+    <section id="viewReports" hidden>
+      <h2 id="repTitle">Sales report</h2>
+      <div class="seg" id="repSeg">
+        <button type="button" data-p="week" class="on">Week</button>
+        <button type="button" data-p="month">Month</button>
+        <button type="button" data-p="quarter">Quarter</button>
+        <button type="button" data-p="year">Year</button>
+      </div>
+      <div class="rnav">
+        <button type="button" id="repPrev" aria-label="Earlier">&#8249;</button>
+        <div id="repLabel"></div>
+        <button type="button" id="repNext" aria-label="Later">&#8250;</button>
+      </div>
+      <div class="panel" style="padding-top:12px">
+        <div class="lbl" style="font-size:13px;color:#47526E">Total sales</div>
+        <div class="bigsum" id="repTotal"></div>
+        <table class="sheet" style="margin-top:10px">
+          <thead><tr><th>Drug</th><th>Out</th><th>Sales</th></tr></thead>
+          <tbody id="repBody"></tbody>
+          <tfoot id="repFoot"></tfoot>
+        </table>
+      </div>
+      <div class="note" id="repNote"></div>
+    </section>
+
+    <section id="viewUsers" hidden>
+      <h2>Users</h2>
+      <div class="toolbar">
+        <div style="flex:1"></div>
+        <button class="add" id="addUserBtn" type="button">Add user</button>
+      </div>
+      <div class="panel" id="addUserPanel" hidden>
+        <label id="userPanelTitle">Add user</label>
+        <label for="uName">Full name</label>
+        <input id="uName" type="text" autocomplete="off">
+        <label for="uEmail">Email</label>
+        <input id="uEmail" type="email" autocomplete="off" inputmode="email">
+        <label for="uPassword">Temporary password</label>
+        <div class="pw">
+          <input id="uPassword" type="password" autocomplete="new-password">
+          <button type="button" id="uToggle">Show</button>
+        </div>
+        <label for="uRole">Role</label>
+        <select id="uRole">
+          <option value="seller">Seller</option>
+          <option value="owner">Owner</option>
+        </select>
+        <div id="uShopBox">
+          <label for="uShop">Shop</label>
+          <select id="uShop"></select>
+        </div>
+        <div class="actions">
+          <button class="primary" id="saveUser" type="button">Create account</button>
+          <button class="cancel" id="cancelUser" type="button">Cancel</button>
+        </div>
+        <div class="err" id="userErr" role="alert"></div>
+      </div>
+      <div class="ok" id="userOk" role="status"></div>
+      <div id="userList"></div>
+      <div class="note" id="userNote"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL="https://hnlpchtaxalnyiwxklfi.supabase.co";
+const SUPABASE_KEY="sb_publishable_hFx4bCrDT3b3KyasdTOdZA_Qe4U8ECN";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const CACHE="pharmastock_profile";
+const DRUGS="pharmastock_drugs";
+const SHOPS="pharmastock_shops";
+const SHOPKEY="pharmastock_active_shop";
+let currentRole=null;
+let currentShopId=null;   // a seller's own shop (from their account)
+let shops=[];             // shops this account can see
+let activeShop=null;      // owner: "all" or a shop id. Seller: own shop id.
+let drugs=[];
+let drugSeq=0;
+
+// ---- Offline sales queue ----
+const QUEUE="pharmastock_sale_queue";
+let syncing=false;
+function readQueue(){ try{ const q=JSON.parse(localStorage.getItem(QUEUE)||"[]"); return Array.isArray(q)?q:[]; }catch(_){ return []; } }
+function writeQueue(q){ try{ localStorage.setItem(QUEUE,JSON.stringify(q)); return true; }catch(e){ console.error(e); return false; } }
+function myQueue(){ return readQueue().filter(e=>e.user_id===currentUserId); }
+function newId(){
+  if(window.crypto&&crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{ const r=Math.random()*16|0; return (c==="x"?r:(r&3|8)).toString(16); });
+}
+// No answer from the server (bad or no connection, or an expired login): keep the sale and try again later.
+function isRetryable(err){
+  if(!err) return false;
+  if(!navigator.onLine) return true;
+  const c=String(err.code||"");
+  return c===""||c==="PGRST301"||c==="PGRST302"||c==="PGRST303"||/jwt/i.test(err.message||"");
+}
+function isAuthNetwork(e){ return !!e&&(e.name==="AuthRetryableFetchError"||/fetch|network/i.test(e.message||"")); }
+function updateNetBar(){
+  const q=myQueue(), n=q.length, failed=q.filter(e=>e.status==="failed").length;
+  let msg="";
+  if(!navigator.onLine) msg="Offline. Sales are saved on this phone and sent when you are back online."+(n?" Waiting: "+n+".":"");
+  else if(n) msg=n+(n===1?" sale is":" sales are")+" waiting to send."+(failed?" "+failed+" need attention on the Sell tab.":"");
+  $("netBar").textContent=msg;
+  $("netBar").hidden=!msg;
+}
+// Show stock as it will be once the waiting sales are sent.
+function withPending(list){
+  const q=myQueue().filter(e=>e.status!=="failed");
+  if(!q.length) return list;
+  const sh=scopeShop(), todayStr=localISO(new Date());
+  return list.map(d=>{
+    let out=0, outToday=0;
+    const sm=d.shops?JSON.parse(JSON.stringify(d.shops)):null;
+    q.forEach(e=>{
+      if(sh&&e.shop_id!==sh) return;
+      e.items.forEach(it=>{
+        if(it.drug_id!==d.id) return;
+        const n=Number(it.quantity);
+        out+=n;
+        if(localISO(new Date(e.at))===todayStr) outToday+=n;
+        if(sm&&sm[e.shop_id]) sm[e.shop_id].balance-=n;
+      });
+    });
+    if(!out) return d;
+    return {...d,balance:Number(d.balance)-out,stock_out:(Number(d.stock_out)||0)+outToday,shops:sm||d.shops};
+  });
+}
+function setQueueStatus(id,status,error){
+  const q=readQueue();
+  const e=q.find(x=>x.id===id);
+  if(e){ e.status=status; e.error=error||""; writeQueue(q); }
+}
+function removeFromQueue(id){ writeQueue(readQueue().filter(x=>x.id!==id)); }
+async function needSignIn(){
+  const n=myQueue().length;
+  await lockOut();
+  $("err").textContent=n?"Sign in again to send "+n+" waiting sale"+(n===1?"":"s")+".":"Your login ended. Sign in again.";
+}
+async function queueSale(id,at,shopId,items){
+  const q=readQueue();
+  q.push({id,user_id:currentUserId,shop_id:shopId,at,items,status:"pending",error:""});
+  if(!writeQueue(q)){ $("sellErr").textContent="Could not save this sale on the phone (storage is full). Nothing was recorded."; return; }
+  const count=items.length;
+  cart=[];
+  await loadDrugs();
+  renderCart(); renderPending(); updateNetBar(); loadTodaySales();
+  $("sellOk").textContent="Saved on this phone: "+count+(count===1?" item":" items")+". It will be sent when you are online.";
+}
+async function syncQueue(){
+  if(syncing||!navigator.onLine||!currentUserId) return;
+  const todo=myQueue().filter(e=>e.status!=="failed");
+  if(!todo.length){ updateNetBar(); return; }
+  syncing=true;
+  let sent=0;
+  try{
+    const {data:{session},error:se}=await sb.auth.getSession();
+    if(!session){
+      syncing=false;
+      if(!isAuthNetwork(se)) await needSignIn();
+      return;
+    }
+    for(const e of todo){
+      let res;
+      try{
+        res=await sb.rpc("sell_stock_batch",{p_items:e.items.map(i=>({drug_id:i.drug_id,quantity:i.quantity,price:i.price})),p_shop_id:e.shop_id,p_client_id:e.id,p_occurred_at:e.at,p_offline:true});
+      }catch(ex){ res={error:{code:"",message:String(ex)}}; }
+      if(res.error){
+        if(isRetryable(res.error)) break;
+        setQueueStatus(e.id,"failed",res.error.message||"The server did not accept it.");
+        continue;
+      }
+      removeFromQueue(e.id); sent++;
+    }
+  }finally{ syncing=false; }
+  updateNetBar(); renderPending();
+  if(sent){
+    await loadDrugs();
+    const t=currentTabName();
+    if(t==="sell") loadTodaySales();
+    if(t==="today") loadDay();
+  }
+}
+function renderPending(){
+  const box=$("pendingPanel"), list=$("pendingList");
+  const q=myQueue();
+  box.hidden=!q.length;
+  list.textContent="";
+  q.forEach(e=>{
+    const row=el("div","cartitem");
+    const total=e.items.reduce((a,i)=>a+Number(i.quantity)*Number(i.price),0);
+    const t=new Date(e.at).toLocaleString([], {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    row.append(el("div","dname",e.items.map(i=>i.name+" x "+fmt(i.quantity)).join(", ")));
+    row.append(el("div","meta",t+" - "+fmt(total)+(e.status==="failed"?" - Not accepted: "+e.error:" - waiting to send")));
+    if(e.status==="failed"){
+      const acts=el("div","actions");
+      const retry=el("button","recv","Try again"); retry.type="button";
+      retry.addEventListener("click",()=>{ setQueueStatus(e.id,"pending",""); renderPending(); updateNetBar(); syncQueue(); });
+      const drop=el("button","rm","Discard"); drop.type="button";
+      drop.addEventListener("click",()=>{
+        if(!confirm("Discard this sale? It was NOT recorded on the server, so its stock and money will not be counted. Tell the owner if the goods were already given out.")) return;
+        removeFromQueue(e.id); renderPending(); updateNetBar(); loadDrugs();
+      });
+      acts.append(retry,drop);
+      row.appendChild(acts);
+    }
+    list.appendChild(row);
+  });
+}
+
+// ---- Shops ----
+function shopName(id){ const x=shops.find(s=>s.id===id); return x?x.name:""; }
+// Shop id to send to the server. null = the server decides (sellers) or all shops (owner).
+function shopArg(){ return currentRole==="owner"&&activeShop&&activeShop!=="all"?activeShop:null; }
+// The shop whose numbers are on screen.
+function scopeShop(){ return currentRole==="owner"?shopArg():currentShopId; }
+// Receiving and selling need one specific shop.
+function canWrite(){ return currentRole==="owner"?!!shopArg():!!currentShopId; }
+function shopLabel(){
+  if(currentRole==="owner") return activeShop==="all"||!activeShop?"All shops":shopName(activeShop);
+  return shopName(currentShopId);
+}
+function sheetArgs(start,end){
+  const a={p_start:start.toISOString(),p_end:end.toISOString()};
+  const sh=shopArg();
+  if(sh) a.p_shop_id=sh;
+  return a;
+}
+function clearDrugCache(){
+  Object.keys(localStorage).filter(k=>k===DRUGS||k.indexOf(DRUGS+":")===0).forEach(k=>localStorage.removeItem(k));
+}
+function resetShopState(){
+  shops=[]; activeShop=null; currentShopId=null;
+  localStorage.removeItem(SHOPS);
+  clearDrugCache();
+}
+function currentTabName(){ return Object.keys(TABS).find(k=>!$(TABS[k][1]).hidden)||"drugs"; }
+async function ensureShops(){
+  if(shops.length) return;
+  try{
+    if(!navigator.onLine) throw new Error("offline");
+    const {data,error}=await sb.from("shops").select("id,name").order("name");
+    if(error) throw error;
+    shops=data||[];
+    localStorage.setItem(SHOPS,JSON.stringify(shops));
+  }catch(e){
+    if(navigator.onLine) console.error(e);
+    try{ shops=JSON.parse(localStorage.getItem(SHOPS)||"[]"); }catch(_){ shops=[]; }
+  }
+  initShopUI();
+}
+function initShopUI(){
+  if(currentRole==="owner"){
+    let saved=null;
+    try{ saved=localStorage.getItem(SHOPKEY); }catch(_){}
+    activeShop=(saved==="all"||shops.some(s=>s.id===saved))?saved:"all";
+    $("shopBar").hidden=!shops.length;
+    $("shopBadge").style.display="none";
+    renderShopSeg();
+  }else{
+    activeShop=currentShopId;
+    $("shopBar").hidden=true;
+    const b=$("shopBadge");
+    b.textContent=shopName(currentShopId)||"No shop";
+    b.style.display="inline-block";
+  }
+}
+function renderShopSeg(){
+  const seg=$("shopSeg");
+  seg.textContent="";
+  const mk=(id,label)=>{
+    const b=el("button",activeShop===id?"on":"",label);
+    b.type="button";
+    b.addEventListener("click",()=>setActiveShop(id));
+    seg.appendChild(b);
+  };
+  mk("all","All shops");
+  shops.forEach(x=>mk(x.id,x.name));
+}
+function setActiveShop(id){
+  if(id===activeShop) return;
+  activeShop=id;
+  try{ localStorage.setItem(SHOPKEY,id); }catch(_){}
+  renderShopSeg();
+  cart=[]; renderCart();
+  closeRecv(); closeEdit(); closeAdd();
+  $("okMsg").textContent=""; $("sellOk").textContent=""; $("sellErr").textContent="";
+  loadDrugs();
+  const t=currentTabName();
+  if(t==="sell") loadTodaySales();
+  if(t==="today") loadDay();
+  if(t==="reports") loadReport();
+}
+
+function show(id){
+  ["loadScreen","loginScreen","homeScreen"].forEach(s=>$(s).classList.toggle("active",s===id));
+}
+
+function cachedFor(user){
+  try{
+    const c=JSON.parse(localStorage.getItem(CACHE)||"null");
+    return c&&c.id===user.id?c:null;
+  }catch(e){ return null; }
+}
+
+function showHome(user,profile){
+  currentUserId=user.id;
+  $("who").textContent=(profile&&profile.full_name)||user.email;
+  $("role").textContent=profile?(profile.role==="owner"?"Owner":"User"):"";
+  $("role").style.display=profile?"inline-block":"none";
+  currentRole=profile?profile.role:null;
+  currentShopId=profile?(profile.shop_id||null):null;
+  shops=[]; activeShop=null;
+  $("shopBar").hidden=true; $("shopBadge").style.display="none";
+  $("addBtn").hidden=currentRole!=="owner";
+  $("tabReports").hidden=currentRole!=="owner";
+  $("tabUsers").hidden=currentRole!=="owner";
+  $("dayPick").closest(".day").hidden=false;
+  $("dayTitle").textContent="Daily sheet";
+  show("homeScreen");
+  $("recordsBox").hidden=currentRole!=="owner";
+  switchTab("drugs");
+  loadDrugs();
+  updateNetBar(); renderPending(); syncQueue();
+}
+
+// active = profile found and enabled, inactive = profile found but deactivated, deleted = confirmed no profile, unknown = could not check (offline or network error)
+async function getProfile(userId){
+  try{
+    const {data,error}=await sb.from("profiles").select("full_name,role,is_active,shop_id").eq("id",userId).maybeSingle();
+    if(error) throw error;
+    if(!data) return {status:"deleted"};
+    if(data.is_active===false) return {status:"inactive"};
+    return {status:"active",profile:data};
+  }catch(e){
+    console.error("Profile check could not be confirmed:",e);
+    return {status:"unknown"};
+  }
+}
+
+async function lockOut(){
+  try{ await sb.auth.signOut(); }catch(e){ console.error(e); }
+  localStorage.removeItem(CACHE);
+  resetShopState();
+  drugs=[]; currentRole=null; currentUserId=null; users=[];
+  show("loginScreen");
+}
+const INACTIVE_MSG="This account has been deactivated. Ask the owner to activate it.";
+
+// Re-check the account while the app is open, so a deactivated user is kicked out
+async function recheckAccess(){
+  if(!navigator.onLine||!currentUserId) return;
+  const {data:{session},error:se}=await sb.auth.getSession();
+  if(!session){
+    if(isAuthNetwork(se)) return;
+    await needSignIn();
+    return;
+  }
+  const r=await getProfile(session.user.id);
+  if(r.status==="inactive"||r.status==="deleted"){
+    await lockOut();
+    $("err").textContent=r.status==="inactive"?INACTIVE_MSG:"This account no longer has access.";
+    return;
+  }
+  if(r.status==="active"&&currentRole!=="owner"&&(r.profile.shop_id||null)!==currentShopId){
+    currentShopId=r.profile.shop_id||null;
+    shops=[]; cart=[]; renderCart();
+    loadDrugs();
+  }
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") recheckAccess(); });
+window.addEventListener("online",()=>{ recheckAccess(); updateNetBar(); syncQueue(); });
+window.addEventListener("offline",updateNetBar);
+setInterval(recheckAccess,60000);
+setInterval(syncQueue,30000);
+
+async function enter(session){
+  const user=session.user;
+  if(!navigator.onLine){
+    const c=cachedFor(user);
+    if(c&&c.is_active===false){ await lockOut(); return "inactive"; }
+    showHome(user,c);
+    return true;
+  }
+  const r=await getProfile(user.id);
+  if(r.status==="inactive"){
+    await lockOut();
+    return "inactive";
+  }
+  if(r.status==="deleted"){
+    await lockOut();
+    return "noaccess";
+  }
+  if(r.status==="active"){
+    localStorage.setItem(CACHE,JSON.stringify({id:user.id,full_name:r.profile.full_name,role:r.profile.role,shop_id:r.profile.shop_id||null,is_active:true}));
+    showHome(user,r.profile);
+    return true;
+  }
+  showHome(user,cachedFor(user));
+  return true;
+}
+
+async function login(){
+  const email=$("email").value.trim();
+  const password=$("password").value;
+  $("err").textContent="";
+  if(!email||!password){ $("err").textContent="Enter your email and password."; return; }
+  if(!navigator.onLine){ $("err").textContent="No internet. Connect to sign in."; return; }
+  const btn=$("signIn");
+  btn.disabled=true; btn.textContent="Signing in...";
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password});
+    if(error){
+      $("err").textContent=error.message.toLowerCase().includes("invalid")?"Email or password is wrong.":error.message;
+      return;
+    }
+    const res=await enter(data.session);
+    if(res==="noaccess"){
+      $("err").textContent="This account is not set up for PharmaStock. Ask the owner to add you.";
+    }else if(res==="inactive"){
+      $("err").textContent=INACTIVE_MSG;
+    }
+  }catch(e){
+    console.error(e);
+    $("err").textContent="Could not sign in. Check your connection and try again.";
+  }finally{
+    btn.disabled=false; btn.textContent="Sign in";
+  }
+}
+
+async function logout(){
+  const waiting=myQueue().length;
+  if(waiting&&!confirm(waiting+(waiting===1?" sale is":" sales are")+" not sent yet. "+(waiting===1?"It stays":"They stay")+" saved on this phone and will be sent after you sign in again with this account. Sign out now?")) return;
+  await sb.auth.signOut();
+  localStorage.removeItem(CACHE);
+  resetShopState();
+  drugs=[]; currentRole=null; currentUserId=null; users=[]; cart=[]; $("tsTotal").textContent="-"; $("tsBody").textContent=""; $("sellPanel").hidden=true; $("sellOk").textContent=""; closeRecv(); closeEdit(); $("okMsg").textContent="";
+  $("addUserPanel").hidden=true; $("userOk").textContent=""; $("userList").innerHTML="";
+  $("password").value="";
+  show("loginScreen");
+}
+
+$("signIn").addEventListener("click",login);
+$("signOut").addEventListener("click",logout);
+$("password").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+$("toggle").addEventListener("click",()=>{
+  const f=$("password"),hidden=f.type==="password";
+  f.type=hidden?"text":"password";
+  $("toggle").textContent=hidden?"Hide":"Show";
+});
+
+
+function fmt(n){ return Number(n).toLocaleString(undefined,{maximumFractionDigits:2}); }
+
+function buildDrugs(rows,sh){
+  const by={};
+  rows.forEach(r=>{
+    let d=by[r.id];
+    if(!d){
+      d=by[r.id]={id:r.id,name:r.name,unit:r.unit,cost_price:r.cost_price,default_selling_price:r.default_selling_price,reorder_level:r.reorder_level,is_active:r.is_active,shops:{}};
+    }
+    d.shops[r.shop_id]={balance:Number(r.balance),price:r.selling_price,override:(r.override_price===null||r.override_price===undefined)?null:Number(r.override_price)};
+  });
+  return Object.values(by).map(d=>{
+    const ids=Object.keys(d.shops);
+    const balance=sh?(d.shops[sh]?d.shops[sh].balance:0):ids.reduce((a,i)=>a+d.shops[i].balance,0);
+    const price=sh?(d.shops[sh]?d.shops[sh].price:d.default_selling_price):d.default_selling_price;
+    return {...d,balance,selling_price:price};
+  }).sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+async function loadDrugs(){
+  $("listNote").textContent="";
+  const seq=++drugSeq;
+  await ensureShops();
+  if(seq!==drugSeq) return;
+  const sh=scopeShop();
+  const key=DRUGS+":"+(sh||"all");
+  if(currentRole!=="owner"&&!currentShopId){
+    drugs=[];
+    $("listNote").textContent="Your account is not assigned to a shop. Ask the owner.";
+  }else{
+    let base=null;
+    try{
+      if(!navigator.onLine) throw new Error("offline");
+      const now=new Date();
+      const start=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      const end=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+      const [bal,day]=await Promise.all([
+        sb.from("drug_balances").select("*").eq("is_active",true).order("name"),
+        sb.rpc("daily_sheet",sheetArgs(start,end))
+      ]);
+      if(seq!==drugSeq) return;
+      if(bal.error) throw bal.error;
+      const today={};
+      if(!day.error) (day.data||[]).forEach(r=>{ today[r.drug_id]=r; });
+      base=buildDrugs(bal.data||[],sh).map(d=>({...d,stock_in:today[d.id]?Number(today[d.id].stock_in):null,stock_out:today[d.id]?Number(today[d.id].stock_out):null}));
+      try{ localStorage.setItem(key,JSON.stringify(base)); }catch(_){}
+    }catch(e){
+      if(seq!==drugSeq) return;
+      if(navigator.onLine) console.error(e);
+      try{ base=JSON.parse(localStorage.getItem(key)||"[]"); }catch(_){ base=[]; }
+      $("listNote").textContent=navigator.onLine?"Could not load the latest list. Showing the last saved one.":"Offline: showing the last saved list.";
+    }
+    drugs=withPending(base);
+  }
+  renderDrugs();
+  renderSell();
+  refreshCart();
+}
+
+function renderDrugs(){
+  const q=$("search").value.trim().toLowerCase();
+  const list=$("drugList");
+  list.textContent="";
+  const rows=drugs.filter(d=>d.name.toLowerCase().includes(q));
+  if(!rows.length){
+    const e=document.createElement("div");
+    e.className="empty";
+    e.textContent=drugs.length?"No drug matches your search.":(currentRole==="owner"?"No drugs yet. Tap Add drug to create the first one.":"No drugs yet. Ask the owner to add drugs.");
+    list.appendChild(e);
+    if(q) list.appendChild(addNewOffer($("search").value.trim()));
+    return;
+  }
+  rows.forEach(d=>{
+    const bal=Number(d.balance);
+    const row=document.createElement("div"); row.className="row";
+    const left=document.createElement("div");
+    const n=document.createElement("div"); n.className="dname"; n.textContent=d.name;
+    const m=document.createElement("div"); m.className="meta";
+    m.textContent=(currentRole==="owner"&&!scopeShop())?shops.map(x=>x.name+": "+fmt(d.shops[x.id]?d.shops[x.id].balance:0)).join("   "):"";
+    const rb=document.createElement("button"); rb.type="button"; rb.className="recv"; rb.textContent="Receive stock";
+    rb.addEventListener("click",()=>openRecv(d));
+    left.append(n,m);
+    if(canWrite()) left.append(rb);
+    if(currentRole==="owner") holdToEdit(row,d);
+    const right=document.createElement("div"); right.className="nums";
+    const col=(label,value,main)=>{
+      const c=document.createElement("div"); c.className="c"+(main?" main":"");
+      const v=document.createElement("div"); v.className="v";
+      const num=Number(value);
+      if(value===null||value===undefined||!num){ v.textContent=main?fmt(num||0):"-"; if(!main) v.classList.add("z"); }
+      else v.textContent=fmt(num);
+      const h=document.createElement("div"); h.className="h"; h.textContent=label;
+      c.append(v,h);
+      return c;
+    };
+    const avail=col("Available",bal,true);
+    if(bal<=0){ const t=document.createElement("div"); t.className="stat out"; t.textContent="Out of stock"; avail.appendChild(t); }
+    else if(bal<=Number(d.reorder_level)){ const t=document.createElement("div"); t.className="stat low"; t.textContent="Low"; avail.appendChild(t); }
+    right.append(avail,col("In today",d.stock_in,false),col("Out today",d.stock_out,false));
+    row.append(left,right);
+    list.appendChild(row);
+  });
+  if(q&&!drugs.some(d=>d.name.toLowerCase()===q)) list.appendChild(addNewOffer($("search").value.trim()));
+  if(currentRole==="owner") list.appendChild(el("div","note","Press and hold a drug to edit it."+(scopeShop()?"":" Choose Shop A or Shop B above to receive stock.")));
+}
+
+function holdToEdit(row,d){
+  row.classList.add("holdable");
+  let timer=null,sx=0,sy=0;
+  const cancel=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+  row.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="mouse"&&e.button!==0) return;
+    sx=e.clientX; sy=e.clientY;
+    cancel();
+    timer=setTimeout(()=>{
+      timer=null;
+      if(navigator.vibrate) try{ navigator.vibrate(30); }catch(_){}
+      row.dataset.held="1";
+      openEdit(d);
+    },500);
+  });
+  row.addEventListener("pointermove",e=>{ if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10) cancel(); });
+  ["pointerup","pointercancel","pointerleave"].forEach(t=>row.addEventListener(t,cancel));
+  row.addEventListener("contextmenu",e=>e.preventDefault());
+  // a long press must not also trigger the Receive stock button under the finger
+  row.addEventListener("click",e=>{
+    if(row.dataset.held){ e.stopPropagation(); e.preventDefault(); delete row.dataset.held; }
+  },true);
+}
+
+function closeAdd(){
+  $("addPanel").hidden=true;
+  $("addBtn").hidden=currentRole!=="owner";
+  ["dName","dCost","dSell","dReorder","dOpen"].forEach(id=>$(id).value="");
+  $("addErr").textContent="";
+}
+
+async function saveDrug(){
+  const name=$("dName").value.trim();
+  const cost=Number($("dCost").value||0);
+  const sell=Number($("dSell").value||0);
+  const reorder=Number($("dReorder").value||0);
+  const open=Number($("dOpen").value||0);
+  const err=$("addErr");
+  err.textContent="";
+  if(!name){ err.textContent="Enter the drug name."; return; }
+  if([cost,sell,reorder,open].some(v=>isNaN(v)||v<0)){ err.textContent="Prices, reorder level and opening stock must be zero or more."; return; }
+  if(drugs.some(d=>d.name.toLowerCase()===name.toLowerCase())){ err.textContent="A drug with this name already exists."; return; }
+  if(!navigator.onLine){ err.textContent="No internet. Connect to save."; return; }
+  const btn=$("saveDrug");
+  btn.disabled=true; btn.textContent="Saving...";
+  try{
+    const {data:created,error}=await sb.from("drugs").insert({name,cost_price:cost,selling_price:sell,reorder_level:reorder}).select("id").single();
+    if(error){
+      err.textContent=error.code==="42501"?"Only the owner can add drugs.":"Could not save. Try again.";
+      return;
+    }
+    let msg=name+" added.";
+    if(open>0){
+      const r=await sb.rpc("receive_stock",{p_drug_id:created.id,p_quantity:open,p_cost:cost,p_note:"Opening stock",p_shop_id:shopArg()});
+      msg=r.error?name+" added, but opening stock was not saved. Tap Receive stock on it.":name+" added with "+fmt(open)+" in stock.";
+    }
+    closeAdd();
+    $("search").value=""; $("sSearch").value="";
+    await loadDrugs();
+    $("okMsg").textContent=msg;
+  }catch(e){
+    console.error(e);
+    err.textContent="Could not save. Check your connection and try again.";
+  }finally{
+    btn.disabled=false; btn.textContent="Save drug";
+  }
+}
+
+let recvDrug=null;
+function openRecv(d){
+  recvDrug=d;
+  $("okMsg").textContent="";
+  $("recvTitle").textContent="Receive stock: "+d.name+(shopLabel()?" ("+shopLabel()+")":"");
+  $("rQty").value="";
+  $("rCost").value=Number(d.cost_price)||"";
+  $("rCost").parentElement.hidden=currentRole!=="owner";
+  $("rNote").value="";
+  $("recvErr").textContent="";
+  $("recvPanel").hidden=false;
+  $("addPanel").hidden=true;
+  closeEdit();
+  $("addBtn").hidden=currentRole!=="owner";
+  $("recvPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  $("rQty").focus();
+}
+function closeRecv(){
+  $("recvPanel").hidden=true;
+  recvDrug=null;
+  $("recvErr").textContent="";
+}
+async function saveRecv(){
+  const err=$("recvErr");
+  err.textContent="";
+  if(!recvDrug) return;
+  const qty=Number($("rQty").value);
+  const cost=currentRole==="owner"?Number($("rCost").value||0):Number(recvDrug.cost_price||0);
+  if(!qty||isNaN(qty)||qty<=0){ err.textContent="Enter a quantity more than zero."; return; }
+  if(isNaN(cost)||cost<0){ err.textContent="Cost price must be zero or more."; return; }
+  if(!navigator.onLine){ err.textContent="No internet. Connect to save."; return; }
+  const btn=$("saveRecv");
+  btn.disabled=true; btn.textContent="Saving...";
+  try{
+    const {error}=await sb.rpc("receive_stock",{p_drug_id:recvDrug.id,p_quantity:qty,p_cost:cost,p_note:$("rNote").value.trim()||null,p_shop_id:shopArg()});
+    if(error){
+      err.textContent=error.code==="42501"?"Your account cannot receive stock.":"Could not save. Try again.";
+      console.error(error);
+      return;
+    }
+    const name=recvDrug.name;
+    closeRecv();
+    await loadDrugs();
+    $("okMsg").textContent="Received "+fmt(qty)+" of "+name+".";
+  }catch(e){
+    console.error(e);
+    err.textContent="Could not save. Check your connection and try again.";
+  }finally{
+    btn.disabled=false; btn.textContent="Save stock";
+  }
+}
+$("saveRecv").addEventListener("click",saveRecv);
+$("cancelRecv").addEventListener("click",closeRecv);
+$("search").addEventListener("input",renderDrugs);
+function openAdd(name){
+  closeRecv();
+  closeEdit();
+  $("okMsg").textContent="";
+  $("addErr").textContent="";
+  $("addPanel").hidden=false;
+  $("addBtn").hidden=true;
+  const oneShop=!!shopArg();
+  $("dOpen").disabled=!oneShop; $("dOpen").value="";
+  $("dOpenLbl").textContent=oneShop?"Opening stock in "+shopLabel()+" (optional)":"Opening stock (choose a shop above to add)";
+  if(name!==undefined) $("dName").value=name;
+  $("addPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  ($("dName").value?$("dSell"):$("dName")).focus();
+}
+function addNewOffer(name){
+  if(currentRole!=="owner"){
+    const n=el("div","note","Not in the list? Ask the owner to add it.");
+    return n;
+  }
+  const b=el("button","addnew","Add \""+name+"\" as a new drug");
+  b.type="button";
+  b.addEventListener("click",()=>{
+    $("search").value="";
+    $("sSearch").value="";
+    switchTab("drugs");
+    renderDrugs();
+    openAdd(name);
+    $("dName").value=name;
+  });
+  return b;
+}
+$("addBtn").addEventListener("click",()=>openAdd());
+$("cancelAdd").addEventListener("click",closeAdd);
+$("saveDrug").addEventListener("click",saveDrug);
+
+let editDrugRow=null;
+let shopPriceInputs={};
+function openEdit(d){
+  editDrugRow=d;
+  $("okMsg").textContent="";
+  $("editTitle").textContent="Edit: "+d.name;
+  $("eName").value=d.name;
+  $("eReorder").value=Number(d.reorder_level)||0;
+  $("eCost").value=Number(d.cost_price)||0;
+  $("eSell").value=Number(d.default_selling_price!==undefined?d.default_selling_price:d.selling_price)||0;
+  const sp=$("shopPrices"); sp.textContent="";
+  shopPriceInputs={};
+  if(shops.length){
+    shops.forEach(x=>{
+      const box=el("div");
+      const lab=el("label",null,x.name+" selling price"); lab.htmlFor="sp"+x.id;
+      const inp=document.createElement("input");
+      inp.id="sp"+x.id; inp.type="number"; inp.inputMode="decimal"; inp.min="0"; inp.step="any"; inp.placeholder="Uses default";
+      const o=d.shops&&d.shops[x.id]?d.shops[x.id].override:null;
+      inp.value=(o===null||o===undefined)?"":o;
+      box.append(lab,inp); sp.appendChild(box);
+      shopPriceInputs[x.id]=inp;
+    });
+    sp.appendChild(el("div","note","Leave a shop price empty to use the default selling price."));
+  }
+  $("editErr").textContent="";
+  closeRecv();
+  $("addPanel").hidden=true;
+  $("addBtn").hidden=currentRole!=="owner";
+  $("editPanel").hidden=false;
+  $("editPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  $("eName").focus();
+}
+function closeEdit(){
+  $("editPanel").hidden=true;
+  editDrugRow=null;
+  $("editErr").textContent="";
+}
+async function updateDrug(fields,okText,priceChanges){
+  const err=$("editErr");
+  if(!navigator.onLine){ err.textContent="No internet. Connect to save."; return; }
+  const btns=[$("saveEdit"),$("hideDrug")];
+  btns.forEach(b=>b.disabled=true);
+  try{
+    const {data,error}=await sb.from("drugs").update(fields).eq("id",editDrugRow.id).select("id");
+    if(error){
+      console.error(error);
+      err.textContent=error.code==="42501"?"Only the owner can edit drugs.":(error.code==="23505"?"A drug with this name already exists.":"Could not save. Try again.");
+      return;
+    }
+    if(!data||!data.length){ err.textContent="Not saved. Your account may not be allowed to edit drugs."; return; }
+    for(const ch of (priceChanges||[])){
+      const pr=await sb.rpc("set_shop_price",{p_drug_id:editDrugRow.id,p_shop_id:ch.shop,p_price:ch.price});
+      if(pr.error){
+        console.error(pr.error);
+        err.textContent="The drug was saved, but a shop price was not. Try again.";
+        await loadDrugs();
+        return;
+      }
+    }
+    closeEdit();
+    await loadDrugs();
+    $("okMsg").textContent=okText;
+  }catch(e){
+    console.error(e);
+    err.textContent="Could not save. Check your connection and try again.";
+  }finally{
+    btns.forEach(b=>b.disabled=false);
+  }
+}
+async function saveEdit(){
+  if(!editDrugRow) return;
+  const err=$("editErr");
+  err.textContent="";
+  const name=$("eName").value.trim();
+  const cost=Number($("eCost").value||0);
+  const sell=Number($("eSell").value||0);
+  const reorder=Number($("eReorder").value||0);
+  if(!name){ err.textContent="Enter the drug name."; return; }
+  if([cost,sell,reorder].some(v=>isNaN(v)||v<0)){ err.textContent="Prices and reorder level must be zero or more."; return; }
+  if(drugs.some(d=>d.id!==editDrugRow.id&&d.name.toLowerCase()===name.toLowerCase())){ err.textContent="A drug with this name already exists."; return; }
+  const changes=[];
+  for(const x of shops){
+    const inp=shopPriceInputs[x.id];
+    if(!inp) continue;
+    const raw=inp.value.trim();
+    const val=raw===""?null:Number(raw);
+    if(val!==null&&(isNaN(val)||val<0)){ err.textContent="Shop prices must be zero or more."; return; }
+    const old=editDrugRow.shops&&editDrugRow.shops[x.id]?editDrugRow.shops[x.id].override:null;
+    if(val!==old) changes.push({shop:x.id,price:val});
+  }
+  await updateDrug({name,cost_price:cost,selling_price:sell,reorder_level:reorder},name+" updated.",changes);
+}
+async function hideDrugNow(){
+  if(!editDrugRow) return;
+  if(!confirm("Hide "+editDrugRow.name+"? It will disappear from Drugs and Sell. Sales history is kept.")) return;
+  const n=editDrugRow.name;
+  await updateDrug({is_active:false},n+" hidden.");
+}
+$("saveEdit").addEventListener("click",saveEdit);
+$("cancelEdit").addEventListener("click",closeEdit);
+$("hideDrug").addEventListener("click",hideDrugNow);
+
+function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
+const TABS={drugs:["tabDrugs","viewDrugs"],sell:["tabSell","viewSell"],today:["tabToday","viewToday"],reports:["tabReports","viewReports"],users:["tabUsers","viewUsers"]};
+function switchTab(name){
+  if((name==="reports"||name==="users")&&currentRole!=="owner") name="drugs";
+  Object.keys(TABS).forEach(k=>{
+    $(TABS[k][0]).classList.toggle("on",k===name);
+    $(TABS[k][1]).hidden=k!==name;
+  });
+  if(name==="sell"){ renderSell(); loadTodaySales(); renderPending(); }
+  if(name==="today") loadDay();
+  if(name==="reports") loadReport();
+  if(name==="users") loadUsers();
+}
+function renderSell(){
+  const q=$("sSearch").value.trim().toLowerCase();
+  const list=$("sellList");
+  list.textContent="";
+  if(!canWrite()){
+    list.appendChild(el("div","empty",currentRole==="owner"?"Choose Shop A or Shop B above to record a sale.":"Your account is not assigned to a shop. Ask the owner."));
+    return;
+  }
+  const rows=drugs.filter(d=>d.name.toLowerCase().includes(q)).sort((a,b)=>(Number(b.balance)>0)-(Number(a.balance)>0)||a.name.localeCompare(b.name));
+  if(!rows.length){
+    list.appendChild(el("div","empty",drugs.length?"No drug matches your search.":"No drugs yet."));
+    if(q) list.appendChild(addNewOffer($("sSearch").value.trim()));
+    return;
+  }
+  rows.forEach(d=>{
+    const out=Number(d.balance)<=0;
+    const row=el("div",out?"row soldout":"row pick");
+    if(out){ row.setAttribute("aria-disabled","true"); }
+    else{ row.tabIndex=0; row.setAttribute("role","button"); }
+    const left=el("div");
+    const inC=cart.find(c=>c.drug.id===d.id);
+    left.append(el("div","dname",d.name),el("div","meta","selling "+fmt(d.selling_price)+(inC?" - in this sale: "+fmt(inC.qty):"")));
+    const right=el("div","right");
+    right.append(el("div","bal",fmt(d.balance)),el("div",out?"stat out":"stat",out?"Out of stock":"in stock"));
+    row.append(left,right);
+    if(!out){
+      row.addEventListener("click",()=>pickDrug(d));
+      row.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pickDrug(d); } });
+    }
+    list.appendChild(row);
+  });
+  if(q&&!drugs.some(d=>d.name.toLowerCase()===q)) list.appendChild(addNewOffer($("sSearch").value.trim()));
+}
+function pickDrug(d){
+  if(Number(d.balance)>0) addToCart(d);
+}
+let cart=[];
+function isOwnerNow(){ return currentRole==="owner"; }
+function refreshCart(){
+  cart=cart.map(c=>{ const d=drugs.find(x=>x.id===c.drug.id); return d?{...c,drug:d}:null; }).filter(Boolean);
+  renderCart();
+}
+function addToCart(d){
+  $("sellOk").textContent="";
+  $("sellErr").textContent="";
+  const c=cart.find(x=>x.drug.id===d.id);
+  if(c){
+    if(c.qty+1>Number(d.balance)){
+      renderCart();
+      $("sellErr").textContent="Only "+fmt(d.balance)+" of "+d.name+" in stock.";
+      return;
+    }
+    c.qty+=1;
+  }else{
+    cart.push({drug:d,qty:1,price:Number(d.selling_price)||0});
+  }
+  $("sSearch").value="";
+  renderSell();
+  renderCart();
+  $("sellOk").textContent="Added "+d.name+" to this sale.";
+}
+function removeFromCart(id){
+  cart=cart.filter(c=>c.drug.id!==id);
+  $("sellErr").textContent="";
+  renderSell();
+  renderCart();
+}
+function clearCart(){
+  cart=[];
+  $("sellErr").textContent="";
+  renderSell();
+  renderCart();
+}
+function cartTotal(){
+  return cart.reduce((sum,c)=>{
+    const q=Number(c.qty),p=Number(c.price);
+    return sum+((q>0&&p>=0)?q*p:0);
+  },0);
+}
+function updateSellTotal(){
+  const n=cart.length;
+  $("sTotal").textContent=n?"Total: "+fmt(cartTotal()):"";
+  $("sellTitle").textContent="Current sale - "+n+(n===1?" item":" items");
+}
+function renderCart(){
+  const panel=$("sellPanel"), list=$("cartList");
+  list.textContent="";
+  panel.hidden=!cart.length;
+  if(!cart.length){ updateSellTotal(); return; }
+  cart.forEach((c,i)=>{
+    const d=c.drug;
+    const box=el("div","cartitem");
+    const top=el("div","carttop");
+    const nameBox=el("div");
+    nameBox.append(el("div","dname",d.name),el("div","meta",fmt(d.balance)+" in stock"));
+    const rm=el("button","rm","Remove");
+    rm.type="button";
+    rm.addEventListener("click",()=>removeFromCart(d.id));
+    top.append(nameBox,rm);
+
+    const grid=el("div","grid2");
+    const qBox=el("div"), pBox=el("div");
+    const qLab=el("label",null,"Quantity"); qLab.htmlFor="cq"+i;
+    const qIn=document.createElement("input");
+    qIn.id="cq"+i; qIn.type="number"; qIn.inputMode="decimal"; qIn.min="0"; qIn.step="any"; qIn.value=c.qty;
+    const pLab=el("label",null,"Price (each)"); pLab.htmlFor="cp"+i;
+    const pIn=document.createElement("input");
+    pIn.id="cp"+i; pIn.type="number"; pIn.inputMode="decimal"; pIn.min="0"; pIn.step="any"; pIn.value=c.price;
+    pIn.readOnly=!isOwnerNow();
+    qBox.append(qLab,qIn); pBox.append(pLab,pIn);
+    grid.append(qBox,pBox);
+
+    const line=el("div","cline");
+    const upLine=()=>{
+      const q=Number(c.qty),p=Number(c.price);
+      line.textContent=(q>0&&p>=0)?"Line total: "+fmt(q*p):"";
+      updateSellTotal();
+    };
+    qIn.addEventListener("input",()=>{ c.qty=qIn.value===""?0:Number(qIn.value); upLine(); });
+    pIn.addEventListener("input",()=>{ c.price=pIn.value===""?0:Number(pIn.value); upLine(); });
+    box.append(top,grid,line);
+    list.appendChild(box);
+    upLine();
+  });
+  updateSellTotal();
+}
+function pendingInRange(start,end){
+  const sh=scopeShop();
+  return myQueue().filter(e=>e.status!=="failed"&&(!sh||e.shop_id===sh)&&new Date(e.at)>=start&&new Date(e.at)<end);
+}
+async function loadTodaySales(){
+  const tot=$("tsTotal"), body=$("tsBody");
+  const start=new Date(); start.setHours(0,0,0,0);
+  const end=new Date(start); end.setDate(end.getDate()+1);
+  const ckey="pharmastock_today:"+currentUserId+":"+(shopArg()||"all")+":"+localISO(start);
+  let rows=null;
+  if(navigator.onLine){
+    try{
+      const {data,error}=await sb.rpc("daily_sheet",sheetArgs(start,end));
+      if(error) throw error;
+      rows=(data||[]).map(r=>({id:r.drug_id,name:r.name,qty:Number(r.stock_out),amount:Number(r.sales_amount)}));
+      try{ localStorage.setItem(ckey,JSON.stringify(rows)); }catch(_){}
+    }catch(e){ console.error(e); }
+  }
+  if(!rows){ try{ rows=JSON.parse(localStorage.getItem(ckey)||"null"); }catch(_){ rows=null; } }
+  const pend=pendingInRange(start,end);
+  if(!rows&&!pend.length){
+    tot.textContent=navigator.onLine?"-":"offline";
+    body.textContent="";
+    body.appendChild(el("div","meta",navigator.onLine?"Could not load today's sales.":"Offline. Today's sales show when you are back online."));
+    return;
+  }
+  rows=(rows||[]).map(r=>({...r}));
+  pend.forEach(e=>e.items.forEach(it=>{
+    let r=rows.find(x=>x.id===it.drug_id);
+    if(!r){ r={id:it.drug_id,name:it.name,qty:0,amount:0}; rows.push(r); }
+    r.qty+=Number(it.quantity); r.amount+=Number(it.quantity)*Number(it.price);
+  }));
+  rows=rows.filter(r=>r.qty>0||r.amount>0).sort((a,b)=>b.amount-a.amount||a.name.localeCompare(b.name));
+  tot.textContent=fmt(rows.reduce((a,r)=>a+r.amount,0));
+  body.textContent="";
+  if(!rows.length){ body.appendChild(el("div","meta","No sales yet today.")); return; }
+  rows.forEach(r=>{
+    const line=el("div","tsrow");
+    line.append(el("span",null,r.name+" x "+fmt(r.qty)),el("span",null,fmt(r.amount)));
+    body.appendChild(line);
+  });
+  if(pend.length) body.appendChild(el("div","meta",pend.length+(pend.length===1?" sale is":" sales are")+" waiting to send (included above)."));
+}
+async function saveSale(){
+  const err=$("sellErr");
+  err.textContent="";
+  if(!cart.length) return;
+  if(!canWrite()){ err.textContent="Choose a shop first."; return; }
+  const isOwner=isOwnerNow();
+  const items=[];
+  for(const c of cart){
+    const d=c.drug, qty=Number(c.qty);
+    const price=isOwner?Number(c.price||0):Number(d.selling_price||0);
+    if(!qty||isNaN(qty)||qty<=0){ err.textContent="Enter a quantity more than zero for "+d.name+"."; return; }
+    if(!isOwner&&!(price>0)){ err.textContent="No selling price is set for "+d.name+". Ask the owner."; return; }
+    if(isNaN(price)||price<0){ err.textContent="Price for "+d.name+" must be zero or more."; return; }
+    if(qty>Number(d.balance)){ err.textContent="Not enough "+d.name+". Only "+fmt(d.balance)+" left."; return; }
+    items.push({drug_id:d.id,name:d.name,quantity:qty,price:price});
+  }
+  const shopId=isOwner?shopArg():currentShopId;
+  const clientId=newId(), at=new Date().toISOString();
+  const btn=$("saveSale");
+  btn.disabled=true; btn.textContent="Saving...";
+  try{
+    if(!navigator.onLine){ await queueSale(clientId,at,shopId,items); return; }
+    // One call, all-or-nothing. The sale id makes a retry safe: the server never records the same sale twice.
+    let res;
+    try{
+      res=await sb.rpc("sell_stock_batch",{p_items:items.map(i=>({drug_id:i.drug_id,quantity:i.quantity,price:i.price})),p_shop_id:shopArg(),p_client_id:clientId});
+    }catch(ex){ res={error:{code:"",message:String(ex)}}; }
+    const error=res.error;
+    if(error){
+      console.error(error);
+      if(isRetryable(error)){ await queueSale(clientId,at,shopId,items); return; }
+      const m=/not enough stock/i.test(error.message||"");
+      const missing=error.code==="PGRST202"||error.code==="42883";
+      err.textContent=missing?"Selling is not set up on the server yet. Ask the owner.":
+        m?"Not enough stock for one of the items. Nothing was recorded. Stock has been refreshed - check the quantities.":
+        (error.code==="42501"?"Your account cannot record sales.":"Could not save. Nothing was recorded. Try again.");
+      if(m) await loadDrugs();
+      return;
+    }
+    const count=items.length;
+    const total=items.reduce((a,it)=>a+it.quantity*it.price,0);
+    cart=[];
+    await loadDrugs();
+    renderCart();
+    loadTodaySales();
+    $("sellOk").textContent="Sale recorded"+(currentRole==="owner"?" in "+shopLabel():"")+": "+count+(count===1?" item":" items")+" for "+fmt(total)+".";
+  }catch(e){
+    console.error(e);
+    err.textContent="Could not save. Check your connection and try again.";
+  }finally{
+    btn.disabled=false; btn.textContent="Record sale";
+  }
+}
+function localISO(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function renderDaySheet(data){
+  const body=$("dayBody"), foot=$("dayFoot");
+  body.textContent=""; foot.textContent="";
+  const cell=(tr,v,isNum)=>{ const td=document.createElement("td"); td.textContent=isNum?(Number(v)?fmt(v):"-"):v; if(isNum&&!Number(v)) td.className="z"; tr.appendChild(td); return td; };
+  let tin=0,tout=0,tsales=0;
+  (data||[]).forEach(r=>{
+    tin+=Number(r.stock_in); tout+=Number(r.stock_out); tsales+=Number(r.sales_amount);
+    const tr=document.createElement("tr");
+    cell(tr,r.name,false);
+    const a=cell(tr,fmt(r.available),false);
+    if(Number(r.available)<=0){ a.style.color="#B3261E"; a.style.fontWeight="700"; }
+    cell(tr,r.stock_in,true); cell(tr,r.stock_out,true); cell(tr,r.sales_amount,true);
+    body.appendChild(tr);
+  });
+  if(!(data||[]).length){
+    const tr=document.createElement("tr"), td=document.createElement("td");
+    td.colSpan=5; td.style.textAlign="left"; td.textContent="No drugs yet."; tr.appendChild(td); body.appendChild(tr);
+    return;
+  }
+  const ft=document.createElement("tr");
+  cell(ft,"Total",false); cell(ft,"",false); cell(ft,tin,true); cell(ft,tout,true); cell(ft,tsales,true);
+  foot.appendChild(ft);
+}
+async function loadDay(){
+  const pick=$("dayPick");
+  const todayStr=localISO(new Date());
+  pick.max=todayStr;
+  if(!pick.value||pick.value>todayStr) pick.value=todayStr;
+  const [y,m,d]=pick.value.split("-").map(Number);
+  const start=new Date(y,m-1,d), end=new Date(y,m-1,d+1);
+  $("dayTitle").textContent="Daily sheet"+(currentRole==="owner"?" - "+shopLabel():"");
+  $("todayNote").textContent="";
+  const ckey="pharmastock_day:"+currentUserId+":"+(shopArg()||"all")+":"+pick.value;
+  let data=null, saved=false;
+  if(navigator.onLine){
+    try{
+      const r=await sb.rpc("daily_sheet",sheetArgs(start,end));
+      if(r.error) throw r.error;
+      data=r.data||[];
+      try{ localStorage.setItem(ckey,JSON.stringify(data)); }catch(_){}
+    }catch(e){ console.error(e); }
+  }
+  if(!data){ try{ data=JSON.parse(localStorage.getItem(ckey)||"null"); saved=!!data; }catch(_){ data=null; } }
+  if(!data){
+    $("dayBody").textContent=""; $("dayFoot").textContent="";
+    $("todayNote").textContent=navigator.onLine?"Could not load the daily sheet. Check your connection and try again.":"You are offline and this day is not saved on this phone.";
+  }else{
+    renderDaySheet(data);
+    if(saved) $("todayNote").textContent="Offline: showing the last saved sheet."+(myQueue().length?" Sales waiting to send are not included.":"");
+  }
+  if(currentRole==="owner") loadRecords(start,end);
+}
+
+// ---- Sales and deliveries of the chosen day, with Cancel (owner) ----
+let cancelRec=null, recSeq=0;
+async function loadRecords(start,end){
+  const seq=++recSeq;
+  const note=$("recNote"), list=$("recList");
+  note.textContent="";
+  if(!navigator.onLine){ list.textContent=""; note.textContent="Connect to the internet to see and cancel sales."; return; }
+  try{
+    let q=sb.from("stock_movements")
+      .select("id,drug_id,shop_id,movement_type,quantity,unit_price,created_by,created_at,offline,voided_at,void_reason")
+      .in("movement_type",["sale","in"])
+      .gte("created_at",start.toISOString()).lt("created_at",end.toISOString())
+      .order("created_at",{ascending:false}).limit(200);
+    const sh=shopArg();
+    if(sh) q=q.eq("shop_id",sh);
+    const [mv,dr,pr]=await Promise.all([q,sb.from("drugs").select("id,name"),sb.from("profiles").select("id,full_name")]);
+    if(seq!==recSeq) return;
+    if(mv.error) throw mv.error;
+    const dn={}, un={};
+    (dr.data||[]).forEach(x=>{ dn[x.id]=x.name; });
+    (pr.data||[]).forEach(x=>{ un[x.id]=x.full_name; });
+    list.textContent="";
+    const rows=mv.data||[];
+    if(!rows.length){ list.appendChild(el("div","empty","No sales or deliveries on this day.")); return; }
+    rows.forEach(r=>{
+      const isSale=r.movement_type==="sale";
+      const qty=Math.abs(Number(r.quantity)), price=Number(r.unit_price)||0;
+      const row=el("div","row"+(r.voided_at?" soldout":""));
+      const left=el("div");
+      const t=new Date(r.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+      const bits=[t,un[r.created_by]||"Unknown"];
+      if(shops.length>1) bits.push(shopName(r.shop_id));
+      if(r.offline) bits.push("sent late");
+      left.append(el("div","dname",dn[r.drug_id]||"Drug"),el("div","meta",bits.filter(Boolean).join("  |  ")));
+      if(r.voided_at&&r.void_reason) left.appendChild(el("div","meta","Reason: "+r.void_reason));
+      const right=el("div","right");
+      if(isSale){
+        right.append(el("div","bal",fmt(qty*price)),el("div","stat",fmt(qty)+" x "+fmt(price)));
+      }else{
+        right.append(el("div","bal","+"+fmt(qty)),el("div","stat","Delivery"));
+      }
+      if(r.voided_at){
+        right.appendChild(el("div","stat out","Cancelled"));
+      }else{
+        const b=el("button","rm",isSale?"Cancel sale":"Cancel delivery");
+        b.type="button"; b.style.marginTop="8px";
+        b.addEventListener("click",()=>openCancel(r,isSale,dn[r.drug_id]||"Drug",qty,price));
+        right.appendChild(b);
+      }
+      row.append(left,right);
+      list.appendChild(row);
+    });
+  }catch(e){
+    if(seq!==recSeq) return;
+    console.error(e);
+    list.textContent="";
+    note.textContent="Could not load the list. Try again.";
+  }
+}
+function openCancel(r,isSale,name,qty,price){
+  cancelRec=r;
+  $("recOk").textContent="";
+  $("cancelTitle").textContent=isSale?"Cancel sale: "+name:"Cancel delivery: "+name;
+  $("cancelDesc").textContent=isSale
+    ?fmt(qty)+" x "+fmt(price)+" = "+fmt(qty*price)+". The stock goes back on the shelf and the sale is taken out of the totals. The record stays in the list as cancelled."
+    :fmt(qty)+" received. Cancelling removes that stock again. This only works if the stock has not been sold.";
+  $("cReason").value="";
+  $("cancelErr").textContent="";
+  $("cancelPanel").hidden=false;
+  $("cancelPanel").scrollIntoView({behavior:"smooth",block:"center"});
+  $("cReason").focus();
+}
+function closeCancel(){
+  $("cancelPanel").hidden=true;
+  cancelRec=null;
+  $("cancelErr").textContent="";
+}
+async function confirmCancelRec(){
+  if(!cancelRec) return;
+  const err=$("cancelErr");
+  err.textContent="";
+  if(!navigator.onLine){ err.textContent="No internet. Connect to cancel."; return; }
+  const btn=$("confirmCancel");
+  btn.disabled=true;
+  try{
+    const {error}=await sb.rpc("void_movement",{p_id:cancelRec.id,p_reason:$("cReason").value.trim()||null});
+    if(error){
+      console.error(error);
+      const msg=error.message||"";
+      err.textContent=/below zero/i.test(msg)?"Cannot cancel: that stock has already been sold, so the count would go below zero.":
+        /already cancelled/i.test(msg)?"This record is already cancelled.":
+        error.code==="42501"?"Only the owner can cancel records.":"Could not cancel. Try again.";
+      return;
+    }
+    closeCancel();
+    await loadDrugs();
+    await loadDay();
+    $("recOk").textContent="Cancelled.";
+  }catch(e){
+    console.error(e);
+    err.textContent="Could not cancel. Check your connection and try again.";
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+// ---- Reports: week / month / quarter / year ----
+let repPeriod="week", repOffset=0, repSeq=0;
+function repRange(period,offset){
+  const n=new Date(), y=n.getFullYear(), m=n.getMonth(), dd=n.getDate();
+  let start,end;
+  if(period==="week"){
+    const mon=dd-((n.getDay()+6)%7);
+    start=new Date(y,m,mon+offset*7); end=new Date(y,m,mon+offset*7+7);
+  }else if(period==="month"){
+    start=new Date(y,m+offset,1); end=new Date(y,m+offset+1,1);
+  }else if(period==="quarter"){
+    const q0=Math.floor(m/3)*3;
+    start=new Date(y,q0+offset*3,1); end=new Date(y,q0+offset*3+3,1);
+  }else{
+    start=new Date(y+offset,0,1); end=new Date(y+offset+1,0,1);
+  }
+  return {start,end};
+}
+function repLabel(period,start,end){
+  const D=(x,o)=>x.toLocaleDateString(undefined,o);
+  if(period==="week"){
+    const last=new Date(end.getFullYear(),end.getMonth(),end.getDate()-1);
+    return D(start,{day:"numeric",month:"short"})+" - "+D(last,{day:"numeric",month:"short",year:"numeric"});
+  }
+  if(period==="month") return D(start,{month:"long",year:"numeric"});
+  if(period==="quarter"){
+    const last=new Date(end.getFullYear(),end.getMonth()-1,1);
+    return "Q"+(Math.floor(start.getMonth()/3)+1)+" "+start.getFullYear()+" ("+D(start,{month:"short"})+" - "+D(last,{month:"short"})+")";
+  }
+  return String(start.getFullYear());
+}
+async function loadReport(){
+  const seq=++repSeq;
+  const {start,end}=repRange(repPeriod,repOffset);
+  $("repLabel").textContent=repLabel(repPeriod,start,end);
+  $("repTitle").textContent="Sales report - "+shopLabel();
+  $("repNext").disabled=repOffset>=0;
+  document.querySelectorAll("#repSeg button").forEach(b=>b.classList.toggle("on",b.dataset.p===repPeriod));
+  $("repNote").textContent="";
+  const body=$("repBody"), foot=$("repFoot");
+  body.textContent=""; foot.textContent=""; $("repTotal").textContent="...";
+  try{
+    const {data,error}=await sb.rpc("daily_sheet",sheetArgs(start,end));
+    if(seq!==repSeq) return;
+    if(error) throw error;
+    const rows=(data||[]).filter(r=>Number(r.stock_out)>0||Number(r.sales_amount)>0).sort((a,b)=>Number(b.sales_amount)-Number(a.sales_amount)||a.name.localeCompare(b.name));
+    let tout=0,tsales=0;
+    const cell=(tr,v,isNum)=>{ const td=document.createElement("td"); td.textContent=isNum?(Number(v)?fmt(v):"-"):v; if(isNum&&!Number(v)) td.className="z"; tr.appendChild(td); };
+    rows.forEach(r=>{
+      tout+=Number(r.stock_out); tsales+=Number(r.sales_amount);
+      const tr=document.createElement("tr");
+      cell(tr,r.name,false); cell(tr,r.stock_out,true); cell(tr,r.sales_amount,true);
+      body.appendChild(tr);
+    });
+    $("repTotal").textContent=fmt(tsales);
+    if(!rows.length){
+      const tr=document.createElement("tr"), td=document.createElement("td");
+      td.colSpan=3; td.style.textAlign="left"; td.textContent="No sales in this period."; tr.appendChild(td); body.appendChild(tr);
+      return;
+    }
+    const ft=document.createElement("tr");
+    cell(ft,"Total",false); cell(ft,tout,true); cell(ft,tsales,true);
+    foot.appendChild(ft);
+  }catch(e){
+    if(seq!==repSeq) return;
+    console.error(e);
+    $("repTotal").textContent="-";
+    $("repNote").textContent="Could not load the report. Check your connection and try again.";
+  }
+}
+document.querySelectorAll("#repSeg button").forEach(b=>b.addEventListener("click",()=>{ repPeriod=b.dataset.p; repOffset=0; loadReport(); }));
+$("repPrev").addEventListener("click",()=>{ repOffset--; loadReport(); });
+$("repNext").addEventListener("click",()=>{ if(repOffset<0){ repOffset++; loadReport(); } });
+let currentUserId=null;
+let users=[];
+async function loadUsers(){
+  const list=$("userList"),note=$("userNote");
+  note.textContent="";
+  list.innerHTML="";
+  if(!navigator.onLine){ note.textContent="No internet. Connect to load users."; return; }
+  list.appendChild(el("div","empty","Loading..."));
+  try{
+    const {data,error}=await sb.from("profiles").select("id,full_name,role,is_active,shop_id").order("full_name");
+    if(error) throw error;
+    users=data||[];
+    renderUsers();
+  }catch(e){
+    console.error(e);
+    list.innerHTML="";
+    note.textContent="Could not load users. Try again.";
+  }
+}
+function renderUsers(){
+  const list=$("userList");
+  list.innerHTML="";
+  if(!users.length){ list.appendChild(el("div","empty","No users yet.")); return; }
+  users.forEach(u=>{
+    const row=el("div","row userRow");
+    const left=document.createElement("div");
+    const n=el("div","dname",u.full_name||"(no name)");
+    if(u.id===currentUserId){ const t=document.createElement("span"); t.textContent=" (you)"; t.style.fontWeight="400"; t.style.color="#47526E"; n.appendChild(t); }
+    const m=document.createElement("div"); m.className="meta";
+    const rolePill=el("span","pill"+(u.role==="owner"?" owner":""),u.role==="owner"?"Owner":"Seller");
+    m.appendChild(rolePill);
+    if(u.role!=="owner"){ m.appendChild(el("span","pill"+(u.shop_id?"":" inactive"),u.shop_id?(shopName(u.shop_id)||"Shop"):"No shop")); }
+    if(!u.is_active){ m.appendChild(el("span","pill inactive","Inactive")); }
+    left.append(n,m);
+    const right=el("div","userActions");
+    const roleSel=document.createElement("select");
+    ["seller","owner"].forEach(r=>{ const o=document.createElement("option"); o.value=r; o.textContent=r==="owner"?"Owner":"Seller"; if(r===u.role) o.selected=true; roleSel.appendChild(o); });
+    roleSel.addEventListener("change",()=>changeRole(u,roleSel.value,roleSel));
+    const toggleBtn=el("button",u.is_active?"cancel":"primary",u.is_active?"Deactivate":"Activate");
+    toggleBtn.type="button";
+    toggleBtn.style.padding="6px 12px";
+    toggleBtn.style.fontSize="13px";
+    if(!u.is_active){ toggleBtn.style.marginTop="0"; }
+    toggleBtn.addEventListener("click",()=>toggleActive(u,toggleBtn));
+    if(u.id===currentUserId){ toggleBtn.disabled=true; toggleBtn.title="You can't deactivate your own account"; }
+    if(u.role!=="owner"){
+      const shopSel=document.createElement("select");
+      if(!u.shop_id){ const o=document.createElement("option"); o.value=""; o.textContent="No shop"; o.selected=true; shopSel.appendChild(o); }
+      shops.forEach(x=>{ const o=document.createElement("option"); o.value=x.id; o.textContent=x.name; if(x.id===u.shop_id) o.selected=true; shopSel.appendChild(o); });
+      shopSel.addEventListener("change",()=>changeShop(u,shopSel.value,shopSel));
+      right.append(roleSel,shopSel,toggleBtn);
+    }else{
+      right.append(roleSel,toggleBtn);
+    }
+    row.append(left,right);
+    list.appendChild(row);
+  });
+}
+async function changeRole(u,newRole,selectEl){
+  if(newRole===u.role) return;
+  if(!confirm("Change "+(u.full_name||"this user")+"'s role to "+(newRole==="owner"?"Owner":"Seller")+"?")){
+    selectEl.value=u.role;
+    return;
+  }
+  try{
+    const {error}=await sb.from("profiles").update({role:newRole}).eq("id",u.id);
+    if(error){
+      alert(error.message.includes("last active owner")?"This is the last active owner and cannot be changed.":"Could not update role.");
+      selectEl.value=u.role;
+      return;
+    }
+    await loadUsers();
+    $("userOk").textContent=(u.full_name||"User")+"'s role updated.";
+  }catch(e){
+    console.error(e);
+    alert("Could not update role. Check your connection.");
+    selectEl.value=u.role;
+  }
+}
+async function changeShop(u,newShop,selectEl){
+  if(!newShop||newShop===u.shop_id){ selectEl.value=u.shop_id||""; return; }
+  const who=u.full_name||"this user";
+  const old=u.shop_id?shopName(u.shop_id):"";
+  if(!confirm("Move "+who+" to "+shopName(newShop)+"?"+(old?" Their past sales stay in "+old+".":""))){ selectEl.value=u.shop_id||""; return; }
+  try{
+    const {data,error}=await sb.from("profiles").update({shop_id:newShop}).eq("id",u.id).select("id");
+    if(error||!data||!data.length){
+      console.error(error);
+      alert("Could not change the shop.");
+      selectEl.value=u.shop_id||"";
+      return;
+    }
+    await loadUsers();
+    $("userOk").textContent=(u.full_name||"User")+" now works in "+shopName(newShop)+".";
+  }catch(e){
+    console.error(e);
+    alert("Could not change the shop. Check your connection.");
+    selectEl.value=u.shop_id||"";
+  }
+}
+async function toggleActive(u,btn){
+  const activating=!u.is_active;
+  if(!activating&&!confirm("Deactivate "+(u.full_name||"this user")+"? They will immediately lose access and be unable to sign in. Their sales/stock history is kept exactly as-is.")) return;
+  if(!navigator.onLine){ alert("No internet. Connect to save."); return; }
+  btn.disabled=true;
+  try{
+    const {error}=await sb.rpc("set_user_active",{p_user_id:u.id,p_active:activating});
+    if(error){
+      const msg=error.message||"Could not update this user.";
+      alert(msg.includes("last active owner")?"This is the last active owner and cannot be deactivated.":msg);
+      return;
+    }
+    await loadUsers();
+    $("userOk").textContent=(u.full_name||"User")+(activating?" activated.":" deactivated. They can no longer sign in.");
+  }catch(e){
+    console.error(e);
+    alert("Could not update this user. Check your connection.");
+  }finally{
+    btn.disabled=false;
+  }
+}
+function openAddUser(){
+  $("userErr").textContent="";
+  $("userOk").textContent="";
+  ["uName","uEmail","uPassword"].forEach(id=>$(id).value="");
+  $("uRole").value="seller";
+  const us=$("uShop"); us.textContent="";
+  shops.forEach(x=>{ const o=document.createElement("option"); o.value=x.id; o.textContent=x.name; us.appendChild(o); });
+  if(activeShop&&activeShop!=="all") us.value=activeShop;
+  $("uShopBox").hidden=false;
+  $("uPassword").type="password";
+  $("uToggle").textContent="Show";
+  $("addUserPanel").hidden=false;
+  $("uName").focus();
+}
+function closeAddUser(){
+  $("addUserPanel").hidden=true;
+  $("userErr").textContent="";
+}
+async function saveUser(){
+  const err=$("userErr");
+  err.textContent="";
+  const full_name=$("uName").value.trim();
+  const email=$("uEmail").value.trim();
+  const password=$("uPassword").value;
+  const role=$("uRole").value;
+  const shop_id=$("uShop").value;
+  if(!full_name){ err.textContent="Enter a full name."; return; }
+  if(!email){ err.textContent="Enter an email."; return; }
+  if(!password||password.length<8){ err.textContent="Password must be at least 8 characters."; return; }
+  if(role==="seller"&&!shop_id){ err.textContent="Choose the shop this seller works in."; return; }
+  if(!navigator.onLine){ err.textContent="No internet. Connect to save."; return; }
+  const btn=$("saveUser");
+  btn.disabled=true; btn.textContent="Creating...";
+  try{
+    const {data,error}=await sb.functions.invoke("create-staff-user",{body:{email,password,full_name,role}});
+    if(error||(data&&data.error)){
+      let msg=(data&&data.error)||error.message||"Could not create account.";
+      if(error&&error.context&&typeof error.context.json==="function"){
+        try{ const body=await error.context.json(); if(body&&body.error) msg=body.error; }catch(_){}
+      }
+      err.textContent=msg;
+      return;
+    }
+    // The account is created by the server function; set the seller's shop right after.
+    let shopOk=true;
+    if(role==="seller"){
+      shopOk=false;
+      try{
+        const {data:found}=await sb.from("profiles").select("id").eq("full_name",full_name).eq("role","seller").is("shop_id",null).order("created_at",{ascending:false}).limit(1);
+        if(found&&found[0]){
+          const up=await sb.from("profiles").update({shop_id}).eq("id",found[0].id).select("id");
+          shopOk=!up.error&&!!(up.data&&up.data.length);
+        }
+      }catch(e2){ console.error(e2); }
+    }
+    closeAddUser();
+    await loadUsers();
+    $("userOk").textContent=full_name+" added as "+(role==="owner"?"Owner":"Seller in "+shopName(shop_id))+"."+(shopOk?"":" The shop was not set. Choose it in the list below.");
+  }catch(e){
+    console.error(e);
+    err.textContent="Could not save. Check your connection and try again.";
+  }finally{
+    btn.disabled=false; btn.textContent="Create account";
+  }
+}
+$("addUserBtn").addEventListener("click",openAddUser);
+$("cancelUser").addEventListener("click",closeAddUser);
+$("uRole").addEventListener("change",()=>{ $("uShopBox").hidden=$("uRole").value!=="seller"; });
+$("saveUser").addEventListener("click",saveUser);
+$("uToggle").addEventListener("click",()=>{
+  const f=$("uPassword"),hidden=f.type==="password";
+  f.type=hidden?"text":"password";
+  $("uToggle").textContent=hidden?"Hide":"Show";
+});
+$("tabDrugs").addEventListener("click",()=>switchTab("drugs"));
+$("tabSell").addEventListener("click",()=>switchTab("sell"));
+$("tabToday").addEventListener("click",()=>switchTab("today"));
+$("tabReports").addEventListener("click",()=>switchTab("reports"));
+$("tabUsers").addEventListener("click",()=>switchTab("users"));
+$("dayPick").addEventListener("change",loadDay);
+$("sSearch").addEventListener("input",renderSell);
+$("saveSale").addEventListener("click",saveSale);
+$("cancelSale").addEventListener("click",clearCart);
+$("confirmCancel").addEventListener("click",confirmCancelRec);
+$("closeCancel").addEventListener("click",closeCancel);
+$("syncNow").addEventListener("click",syncQueue);
+(async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){
+    // Offline with an expired login: reopen from what was saved on this phone.
+    if(!navigator.onLine){
+      let c=null;
+      try{ c=JSON.parse(localStorage.getItem(CACHE)||"null"); }catch(_){}
+      if(c&&c.id&&c.is_active!==false){ showHome({id:c.id,email:c.full_name||""},c); return; }
+    }
+    show("loginScreen");
+    return;
+  }
+  const res=await enter(session);
+  if(res==="noaccess"){
+    show("loginScreen");
+    $("err").textContent="This account no longer has access.";
+  }else if(res==="inactive"){
+    show("loginScreen");
+    $("err").textContent=INACTIVE_MSG;
+  }
+})();
+
+// Lets the app open with no internet (needs sw.js next to this file on the same web address).
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").then(()=>navigator.serviceWorker.ready).then(()=>{
+      // Keep a copy of this page for offline use.
+      return fetch(location.pathname,{cache:"reload"}).then(r=>{
+        if(r&&r.ok) return caches.open("pharmastock-shell-v1").then(c=>c.put(location.origin+location.pathname,r));
+      });
+    }).catch(()=>{});
+  });
+}
+</script>
+</body></html>
