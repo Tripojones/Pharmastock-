@@ -3,8 +3,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#14213D">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>PharmaStock</title>
 <style>
 :root{--paper:#F5F6FB;--ink:#14213D;--primary:#2F55D4;--primary-dark:#2140A8;--line:#D3D8EA;--muted:#5D6785;--warn:#B3261E;--blend:linear-gradient(90deg,#2F55D4,#7B4DD8,#E0407B,#F26B3A,#F5B301)}
@@ -179,7 +177,7 @@ input[readonly]{background:rgba(255,255,255,.45);color:#47526E}
     </div>
     <button class="primary" id="signIn" type="button">Sign in</button>
     <div class="err" id="err" role="alert"></div>
-    <div class="ver">Version 2.9 - acrylic</div>
+    <div class="ver">Version 3.0 - acrylic</div>
   </div>
 </div>
 
@@ -340,6 +338,17 @@ input[readonly]{background:rgba(255,255,255,.45);color:#47526E}
           <tbody id="repBody"></tbody>
           <tfoot id="repFoot"></tfoot>
         </table>
+      </div>
+      <div class="panel" id="exportPanel" style="padding-top:12px">
+        <label style="margin-top:0">Download this report</label>
+        <div class="note" style="margin-top:4px">Uses the period and shop shown above. Cancelled sales are left out.</div>
+        <div class="actions">
+          <button class="primary" id="expXlsx" type="button">Excel</button>
+          <button class="cancel" id="expSum" type="button">Summary CSV</button>
+          <button class="cancel" id="expDet" type="button">Details CSV</button>
+        </div>
+        <div class="err" id="expErr" role="alert"></div>
+        <div class="ok" id="expOk" role="status"></div>
       </div>
       <div class="note" id="repNote"></div>
     </section>
@@ -1570,7 +1579,7 @@ async function loadReport(){
   $("repTitle").textContent="Sales report - "+shopLabel();
   $("repNext").disabled=repOffset>=0;
   document.querySelectorAll("#repSeg button").forEach(b=>b.classList.toggle("on",b.dataset.p===repPeriod));
-  $("repNote").textContent="";
+  $("repNote").textContent=""; $("expErr").textContent=""; $("expOk").textContent="";
   const body=$("repBody"), foot=$("repFoot");
   body.textContent=""; foot.textContent=""; $("repTotal").textContent="...";
   try{
@@ -1605,6 +1614,113 @@ async function loadReport(){
 document.querySelectorAll("#repSeg button").forEach(b=>b.addEventListener("click",()=>{ repPeriod=b.dataset.p; repOffset=0; loadReport(); }));
 $("repPrev").addEventListener("click",()=>{ repOffset--; loadReport(); });
 $("repNext").addEventListener("click",()=>{ if(repOffset<0){ repOffset++; loadReport(); } });
+
+// ---- Download the report as CSV or Excel (owner) ----
+function csvCell(v){
+  if(v===null||v===undefined) return "";
+  if(typeof v==="number") return String(v);
+  let t=String(v);
+  if(/^[=+\-@\t\r]/.test(t)) t="'"+t;
+  return /[",\n\r]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;
+}
+function toCSV(rows){ return "\ufeff"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n"); }
+function saveBlob(blob,name){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function exportName(ext,kind){
+  const {start,end}=repRange(repPeriod,repOffset);
+  const raw="pharmastock_"+kind+"_"+shopLabel()+"_"+repLabel(repPeriod,start,end);
+  return raw.replace(/[^A-Za-z0-9]+/g,"_").replace(/^_+|_+$/g,"")+"."+ext;
+}
+async function buildExport(){
+  const {start,end}=repRange(repPeriod,repOffset);
+  // Summary per drug: same numbers as the report on screen.
+  const sr=await sb.rpc("daily_sheet",sheetArgs(start,end));
+  if(sr.error) throw sr.error;
+  const srows=(sr.data||[]).filter(r=>Number(r.stock_out)>0||Number(r.sales_amount)>0)
+    .sort((a,b)=>Number(b.sales_amount)-Number(a.sales_amount)||a.name.localeCompare(b.name));
+  const summary=[["Drug","Quantity sold","Sales amount"]];
+  let tq=0,ta=0;
+  srows.forEach(r=>{ const q=Number(r.stock_out), a=Number(r.sales_amount); tq+=q; ta+=a; summary.push([r.name,q,a]); });
+  summary.push(["Total",tq,ta]);
+  // Every sale in the period, 1000 rows at a time.
+  const sh=shopArg();
+  let all=[], from=0;
+  for(;;){
+    let q=sb.from("stock_movements")
+      .select("drug_id,shop_id,quantity,unit_price,created_by,created_at,offline")
+      .eq("movement_type","sale").is("voided_at",null)
+      .gte("created_at",start.toISOString()).lt("created_at",end.toISOString())
+      .order("created_at",{ascending:true}).range(from,from+999);
+    if(sh) q=q.eq("shop_id",sh);
+    const r=await q;
+    if(r.error) throw r.error;
+    all=all.concat(r.data||[]);
+    if(!r.data||r.data.length<1000) break;
+    from+=1000;
+  }
+  const [dr,pr]=await Promise.all([sb.from("drugs").select("id,name"),sb.from("profiles").select("id,full_name")]);
+  const dn={}, un={};
+  (dr.data||[]).forEach(x=>{ dn[x.id]=x.name; });
+  (pr.data||[]).forEach(x=>{ un[x.id]=x.full_name; });
+  const detail=[["Date","Time","Shop","Drug","Quantity","Unit price","Total","Sold by","Sent late"]];
+  all.forEach(r=>{
+    const d=new Date(r.created_at), qty=Math.abs(Number(r.quantity)), price=Number(r.unit_price)||0;
+    detail.push([localISO(d),String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"),
+      shopName(r.shop_id),dn[r.drug_id]||"Drug",qty,price,qty*price,un[r.created_by]||"Unknown",r.offline?"Yes":"No"]);
+  });
+  return {summary,detail};
+}
+function loadXlsxLib(){
+  if(window.XLSX) return Promise.resolve();
+  return new Promise((ok,fail)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    sc.onload=ok; sc.onerror=()=>fail(new Error("xlsx library"));
+    document.head.appendChild(sc);
+  });
+}
+async function runExport(kind){
+  const err=$("expErr"), ok=$("expOk");
+  err.textContent=""; ok.textContent="";
+  if(currentRole!=="owner") return;
+  if(!navigator.onLine){ err.textContent="No internet. Connect to download a report."; return; }
+  const btns=["expXlsx","expSum","expDet"].map($);
+  btns.forEach(b=>{ b.disabled=true; });
+  ok.textContent="Preparing the file...";
+  try{
+    const data=await buildExport();
+    if(kind==="xlsx"){
+      await loadXlsxLib();
+      const wb=XLSX.utils.book_new();
+      const s1=XLSX.utils.aoa_to_sheet(data.summary), s2=XLSX.utils.aoa_to_sheet(data.detail);
+      s1["!cols"]=[{wch:32},{wch:14},{wch:16}];
+      s2["!cols"]=[{wch:12},{wch:7},{wch:16},{wch:30},{wch:10},{wch:11},{wch:12},{wch:20},{wch:10}];
+      XLSX.utils.book_append_sheet(wb,s1,"Summary");
+      XLSX.utils.book_append_sheet(wb,s2,"Sales detail");
+      XLSX.writeFile(wb,exportName("xlsx","report"));
+    }else if(kind==="sum"){
+      saveBlob(new Blob([toCSV(data.summary)],{type:"text/csv;charset=utf-8"}),exportName("csv","summary"));
+    }else{
+      saveBlob(new Blob([toCSV(data.detail)],{type:"text/csv;charset=utf-8"}),exportName("csv","details"));
+    }
+    ok.textContent="Downloaded. Check your Downloads folder.";
+  }catch(e){
+    console.error(e);
+    ok.textContent="";
+    err.textContent=(e&&e.message==="xlsx library")
+      ?"Could not load the Excel tool. Check your connection, or use the CSV buttons."
+      :"Could not prepare the file. Check your connection and try again.";
+  }finally{
+    btns.forEach(b=>{ b.disabled=false; });
+  }
+}
+$("expXlsx").addEventListener("click",()=>runExport("xlsx"));
+$("expSum").addEventListener("click",()=>runExport("sum"));
+$("expDet").addEventListener("click",()=>runExport("det"));
 let currentUserId=null;
 let users=[];
 async function loadUsers(){
